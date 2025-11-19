@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# Build
+dist/
+build/
+
+# Vite
+.vite/
+
+# Cache
+.npm
+.eslintcache
+# Vercel
+.vercel

@@ -10,8 +10,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mernapp';
+// MongoDB Connection - FIXED
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI environment variable is required');
+  process.exit(1);
+}
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
@@ -28,20 +33,46 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/user', require('./routes/user'));
 
-// Serve static files in production
+// Serve static files in production ONLY if they exist
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  const frontendPath = path.join(__dirname, '../frontend/dist');
+  
+  // Only serve frontend if the build directory exists
+  app.use(express.static(frontendPath));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
+    // Check if the file exists before sending
+    res.sendFile(path.resolve(frontendPath, 'index.html'), (err) => {
+      if (err) {
+        // If frontend files don't exist, just send API info
+        if (req.path.startsWith('/api')) {
+          res.status(404).json({ error: 'API route not found' });
+        } else {
+          res.json({ 
+            message: 'Backend is running! Frontend is deployed separately.',
+            api: 'Available at /api routes'
+          });
+        }
+      }
+    });
   });
 }
 
-// Basic route
+// Basic API route
 app.get('/api', (req, res) => {
   res.json({ 
-    message: 'TaskFlow Backend is running!',
-    environment: process.env.NODE_ENV || 'development'
+    message: 'TaskFlow Backend API is running!',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
   });
 });
 

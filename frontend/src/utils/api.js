@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Determine API base URL based on environment
-const API_BASE_URL = import.meta.env.PROD 
-  ? `${window.location.origin}/api` 
-  : 'http://localhost:5000/api';
+// Use your Render backend URL directly
+const API_BASE_URL = 'https://myapp-1-5j5l.onrender.com/api';
 
 // Create axios instance
 const api = axios.create({

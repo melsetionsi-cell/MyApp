@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 // Request interceptor to add auth token
@@ -22,6 +22,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -30,17 +31,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      url: error.config?.url
+    });
+    
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
-    }
-    
-    // Handle network errors
-    if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNABORTED') {
-      console.error('Network error:', error);
-      // You can show a notification to the user here
     }
     
     return Promise.reject(error);
